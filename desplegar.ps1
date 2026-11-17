@@ -1,5 +1,6 @@
 param(
-    [string]$RutaPHP = 'PHP'
+    [string]$RutaPHP = 'PHP',
+    [switch]$NoIniciarServidor
 )
 
 $archivoOrigen = Join-Path $PSScriptRoot 'origen\index.php'
@@ -7,10 +8,14 @@ $archivoDestino = Join-Path $PSScriptRoot 'pruebas\index.php'
 
 & $RutaPHP -l $archivoOrigen
 
-if ($LASTEXITCODE  -ne 0) {
-    Write-Host "Hay un error de sintaxis. No se público el cambio."
+if ($LASTEXITCODE -ne 0) {
+    throw "PHP reporto un error de sintaxis; publicacion cancelada."
 }
+
 Copy-Item $archivoOrigen $archivoDestino -Force -ErrorAction Stop
-Write-Host "Versión publicada en el ambiente de pruebas."
-& 'C:\laragon\bin\php\php-8.3.30-Win32-vs16-x64\php.exe' -S localhost:8000 -t .\pruebas
-#  ps indica que se ejecutara desde la terminal 
+Write-Host "Version publicada en el ambiente de pruebas."
+
+if (-not $NoIniciarServidor) {
+    & $RutaPHP -S localhost:8000 -t (Join-Path $PSScriptRoot 'pruebas')
+}
+# ps indica que se ejecutara desde la terminal
